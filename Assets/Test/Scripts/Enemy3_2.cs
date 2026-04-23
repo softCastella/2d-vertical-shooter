@@ -2,29 +2,40 @@ using UnityEngine;
 using System;
 
 
-public class Enemy3 : MonoBehaviour
+public class Enemy3_2 : MonoBehaviour
 {
-    public static Enemy3 Instance;
-    
+    public Vector3 pos;
+    public Action onDie;
     public int hp;
     public int maxHp = 10;
 
-    public Action<Vector3> OnDie;
-    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        //위치 설정
+        pos = transform.position;
+        //체력 설정
         hp = maxHp;
     }
 
+    //데미지 메서드
     public void TakeDamage(int damage)
     {
         hp -= damage;
         if (hp <= 0)
         {
-            onDie(this.transform.position);
+            onDie();
             Destroy(gameObject);
+            
         }
     }
 
+
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
 }
