@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,6 +22,9 @@ public class PlayerCont : MonoBehaviour
     // ── 참조 ──────────────────────────────────────────────
     private Animator anim;
     private GameManager gameManager;
+    private SpriteRenderer sr;
+    private Collider2D col;
+    private bool isRespawning = false; // 리스폰 중 입력·충돌 차단용
 
     // 플레이어 이동 상태 (애니메이터 파라미터 연동)
     public enum PlayerState
@@ -36,10 +40,19 @@ public class PlayerCont : MonoBehaviour
         setBounds();
         anim = GetComponent<Animator>();
         gameManager = FindObjectOfType<GameManager>();
+        sr = GetComponent<SpriteRenderer>();
+        col = GetComponent<Collider2D>();
+
+        // 중력 제거 (Rigidbody2D가 붙어 있는 경우)
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null) rb.gravityScale = 0f;
     }
 
     void Update()
     {
+        // 리스폰 대기 중엔 이동·발사 차단
+        if (isRespawning) return;
+
         Move();
         ClampPosition();
 
@@ -143,26 +156,51 @@ public class PlayerCont : MonoBehaviour
         Die();
     }
 
-    // hp가 0 이하면 플레이어 오브젝트 제거 후 게임 오버 처리
+    // hp가 0 이하면 hp를 0으로 고정 후 라이프 1 감소
     void Die()
     {
         if (hp <= 0)
         {
             hp = 0;
-            Debug.Log("Player is dead");
-            Destroy(gameObject);
-            gameManager.GameOver();
+            Debug.Log($"Player died. HP: {hp}");
+            gameManager.PlayerDied(); // life_2 → life_1 → life_0 순 감소, 전부 소진 시 GameOver
+
+            // 게임오버가 아니면 1초 후 리스폰
+            if (!gameManager.isGameOver)
+            {
+                hp = maxHp;
+                Debug.Log($"HP restored: {hp}");
+                StartCoroutine(RespawnRoutine());
+            }
         }
     }
 
-    // 적과 직접 충돌 시 플레이어·적 둘 다 제거 후 게임 오버
+    // 사망 후 1초간 숨겼다가 다시 등장
+    IEnumerator RespawnRoutine()
+    {
+        isRespawning = true;
+        sr.enabled = false;   // 스프라이트 숨기기
+        col.enabled = false;  // 충돌 비활성 (피격 방지)
+
+        // 화면에 남아있는 적 총알 전부 제거
+        foreach (EnemyBullet b in FindObjectsByType<EnemyBullet>(FindObjectsSortMode.None))
+            Destroy(b.gameObject);
+
+        yield return new WaitForSeconds(1f);
+
+        sr.enabled = true;
+        col.enabled = true;
+        isRespawning = false; // 재등장 후 이동·발사 즉시 가능
+    }
+
+    // 적 몸통 충돌 시 적 제거 후 적의 damage만큼 HP 감소
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Enemy"))
         {
-            Destroy(other.gameObject); // 적 제거
-            Destroy(gameObject);       // 플레이어 제거
-            gameManager.GameOver();
+            Enemy enemy = other.GetComponent<Enemy>();
+            enemy.HitAndDestroy(); // 히트 스프라이트 표시 후 파괴
+            TakeDamage(enemy.damage);
         }
     }
 }

@@ -17,6 +17,7 @@ public class Enemy : MonoBehaviour
     public float power;                // 적의 데미지
     public float speed;                // 이동 속도
     public int exp;                  //경험치 -> 스코어 합산
+    public int damage;
     
     [HideInInspector]
     public Vector3 moveDirection = Vector3.down; // 이동 방향 (GameManager에서 설정)
@@ -48,13 +49,13 @@ public class Enemy : MonoBehaviour
         switch (enemyType)
         {
             case EnemyType.A:
-                health = 80; power = 1f; speed = 1f; exp = 10; shootInterval = 2f; //적당히 빠른애애
+                health = 80; power = 1f; speed = 1f; exp = 10; shootInterval = 2f; damage = 10;//적당히 빠른애애
                 break; 
             case EnemyType.B:
-                health = 100; power = 1.5f; speed = 8f; exp = 15; shootInterval = 1.5f; //가장 빠른애
+                health = 100; power = 1.5f; speed = 8f; exp = 15; shootInterval = 1.5f; damage = 15; //가장 빠른애
                 break;
             case EnemyType.C:
-                health = 200; power = 3f; speed = 0.5f; exp = 20; shootInterval = 3f;  //가장 느린애
+                health = 200; power = 3f; speed = 0.5f; exp = 20; shootInterval = 3f; damage = 30;  //가장 느린애
                 break;
         }
     }
@@ -127,7 +128,19 @@ public class Enemy : MonoBehaviour
         b.GetComponent<EnemyBullet>().moveDirection = AimAtPlayer(firePoints[0].position);
     }
 
-    // 충돌 처리: 플레이어 총알 → 피격 / 플레이어 본체 → 둘 다 제거
+    // 플레이어 몸통 충돌 시 히트 스프라이트 표시 후 파괴 (PlayerCont에서 호출)
+    public void HitAndDestroy()
+    {
+        // 이동·발사 중단
+        speed = 0f;
+        shootInterval = 0f;
+
+        // 히트 스프라이트로 전환 후 0.1초 뒤 파괴
+        sr.sprite = sprites[1];
+        Destroy(gameObject, 0.1f);
+    }
+
+    // 충돌 처리: 플레이어 총알 → 피격 / 플레이어 본체 → PlayerCont에서 처리
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("PlayerBullet"))
@@ -136,14 +149,6 @@ public class Enemy : MonoBehaviour
             Hit(playerBullet.damage);
             Destroy(other.gameObject);
         }
-        else if (other.gameObject.CompareTag("Player"))
-        {
-            Destroy(other.gameObject); // 플레이어 제거
-            Destroy(gameObject);       // 적 제거
-
-            // 씬의 GameManager를 찾아 게임 오버 처리
-            GameManager gm = FindObjectOfType<GameManager>();
-            if (gm != null) gm.GameOver();
-        }
+        // Player 충돌은 PlayerCont.OnTriggerEnter2D에서 단일 처리
     }
 }

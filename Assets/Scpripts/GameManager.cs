@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public GameObject[] enemySpawners;  // [0]: EnemySpawner0 (위쪽), [1~4]: EnemySpawner1~4 (좌우)
     private float delta = 0;            // 마지막 적 생성 이후 경과 시간
     private int index = 0;              // 생성된 적 오브젝트 이름용 고유 인덱스
-    private bool isGameOver = false;    // 게임 오버 여부 (true면 스폰 중단)
+    public bool isGameOver = false;     // 게임 오버 여부 (true면 스폰 중단, PlayerCont에서 참조)
 
     // ── UI 관련 ───────────────────────────────────────────
     public GameObject life_0;               // 라이프 아이콘 0 (마지막 라이프)
@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreText;       // 점수 텍스트 UI
     private int score;                      // 현재 점수
     private GameObject enemy;              // 점수 계산용 적 오브젝트 참조
+    private GameObject player;              // 플레이어 오브젝트 참조
 
     void Start()
     {
@@ -35,6 +36,7 @@ public class GameManager : MonoBehaviour
         life_2.SetActive(true);
 
         enemy = GameObject.Find("Enemy");
+        player = GameObject.Find("Player");
     }
 
     void Update()
@@ -60,9 +62,11 @@ public class GameManager : MonoBehaviour
         else if (life_0 != null && life_0.activeSelf)  life_0.SetActive(false);
 
         if (!life_0.activeSelf && !life_1.activeSelf && !life_2.activeSelf)
+        {
+            Destroy(player);
             GameOver();
+        }
     }
-
 
     // 씬의 모든 적·총알 제거 후 게임 오버 UI 표시
     public void GameOver()
@@ -79,6 +83,7 @@ public class GameManager : MonoBehaviour
 
         GameOverPanel.SetActive(true);
         RetryButton.SetActive(true);
+        scoreText.gameObject.SetActive(false);
     }
 
     // 리트라이 버튼 클릭 시 씬 리로드 → 라이프·HP 모두 초기화
