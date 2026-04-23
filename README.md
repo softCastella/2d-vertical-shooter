@@ -31,6 +31,7 @@ Unity 2D로 제작한 종스크롤(Vertical Scroll) 슈팅 게임입니다.
 
 - **HP 100** — 적 총알에 맞으면 데미지만큼 HP 감소
 - **라이프 3개** — HP가 0이 되면 라이프 1개 소모, 라이프가 모두 소진되면 게임 오버
+- **리스폰** — 라이프 소모 후 1초간 스프라이트 숨김 및 충돌 비활성, 재등장 시 화면의 적 총알 전부 제거
 - **화면 경계 제한** — 카메라 뷰포트 기준으로 화면 밖으로 나가지 못하도록 이동 범위 제한
 - **애니메이션 연동** — 좌/우 이동 시 스프라이트 애니메이션 자동 전환 (Animator 파라미터 `state` 사용)
 
@@ -61,7 +62,7 @@ Unity 2D로 제작한 종스크롤(Vertical Scroll) 슈팅 게임입니다.
 - **타입 C 발사** — 2개의 총구(FirePoint)에서 플레이어 위치를 조준해 동시에 발사
 - **충돌 처리**
   - 플레이어 총알 → 데미지 처리 후 총알 제거
-  - 플레이어 본체 → 플레이어·적 모두 제거 후 게임 오버
+  - 플레이어 본체 충돌 → 히트 스프라이트 0.1초 표시 후 적 제거, 플레이어 데미지 처리
 
 ---
 
@@ -107,12 +108,23 @@ Unity 2D로 제작한 종스크롤(Vertical Scroll) 슈팅 게임입니다.
 
 ```
 Assets/
-├── PlayerCont.cs        # 플레이어 이동, 발사, HP, 충돌 처리
-├── PlayerBullet.cs      # 플레이어 총알 이동
-├── Enemy.cs             # 적 이동, 발사, 피격, 충돌 처리
-├── EnemyBullet.cs       # 적 총알 이동 및 플레이어 충돌 처리
-├── GameManager.cs       # 적 스폰, 점수, 라이프, 게임 오버 관리
-└── OutOfBoundsDestroy.cs# 화면 밖 오브젝트 자동 제거 (범용)
+├── Scpripts/
+│   ├── PlayerCont.cs         # 플레이어 이동, 발사, HP, 리스폰, 충돌 처리
+│   ├── PlayerBullet.cs       # 플레이어 총알 이동
+│   ├── Enemy.cs              # 적 이동, 발사, 피격, 충돌 처리
+│   ├── EnemyBullet.cs        # 적 총알 이동 및 플레이어 충돌 처리
+│   ├── GameManager.cs        # 적 스폰, 점수, 라이프, 게임 오버 관리
+│   └── OutOfBoundsDestroy.cs # 화면 밖 오브젝트 자동 제거 (범용)
+├── Prefabs/                  # 적·총알·플레이어 프리팹
+├── Animations/               # 플레이어 애니메이션 컨트롤러 및 클립
+└── Test/                     # 학습용 연습 씬 및 스크립트
+    ├── Scripts/
+    │   ├── Enemy3_2.cs       # 대리자(onDie) 연습용 적
+    │   ├── Item3_2.cs        # 아이템 타입 정의 (Coin, Boom, Power)
+    │   ├── Player3_2.cs      # 아이템 충돌 감지 연습용 플레이어
+    │   ├── Test3Main_2.cs    # 대리자 + 싱글톤 연결 연습용 Main
+    │   └── ItemManager3.cs   # 싱글톤 패턴 연습용 아이템 매니저
+    └── Prefabs/              # Coin, Boom, Power 아이템 프리팹
 ```
 
 ---
