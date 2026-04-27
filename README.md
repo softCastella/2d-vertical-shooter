@@ -22,6 +22,7 @@ Unity 2D로 제작한 종스크롤(Vertical Scroll) 슈팅 게임입니다.
 | `방향키` / `WASD` | 플레이어 이동 |
 | `Space` | 총알 발사 |
 | `A` | 파워 단계 전환 (1 → 2 → 3 → 1 순환) |
+| `W` 또는 `우클릭` | 붐 사용 (적/적 총알 제거) |
 
 ---
 
@@ -79,12 +80,29 @@ Unity 2D로 제작한 종스크롤(Vertical Scroll) 슈팅 게임입니다.
 
 #### 플레이어 총알 (`PlayerBullet.cs`)
 - 위쪽(`Vector3.up`)으로 직선 이동
+- 파워 3의 가운데 총알은 `ObjectPoolManager`를 통해 재사용
 - 화면 밖으로 나가면 `OutOfBoundsDestroy`에 의해 자동 제거
 
 #### 적 총알 (`EnemyBullet.cs`)
 - 발사 시 설정된 방향(`moveDirection`)으로 직선 이동 (월드 좌표 기준)
 - 플레이어에 닿으면 데미지를 주고 총알 제거
 - 화면 밖으로 나가면 `OutOfBoundsDestroy`에 의해 자동 제거
+
+---
+
+### 붐 시스템 (`PlayerCont.cs`)
+
+- `W` 키 또는 마우스 우클릭으로 붐 사용
+- 붐 보유량이 1 감소하며 UI(`SyncBoomUI`)에 즉시 반영
+- 씬에 존재하는 모든 `Enemy`, `EnemyBullet`를 즉시 제거
+
+---
+
+### 배경 스크롤 (`BackgroundScroller.cs`)
+
+- Top / Middle / Bottom 3개 패널을 아래 방향으로 순환 이동
+- 패널이 하단 임계선을 지나면 가장 위로 재배치해 무한 스크롤 구현
+- `panelHeight` 자동 계산 및 패널 자동 할당(자식 이름 기반) 지원
 
 ---
 
@@ -111,20 +129,16 @@ Assets/
 ├── Scpripts/
 │   ├── PlayerCont.cs         # 플레이어 이동, 발사, HP, 리스폰, 충돌 처리
 │   ├── PlayerBullet.cs       # 플레이어 총알 이동
+│   ├── ObjectPoolManager.cs  # 파워3 가운데 총알 오브젝트 풀
 │   ├── Enemy.cs              # 적 이동, 발사, 피격, 충돌 처리
 │   ├── EnemyBullet.cs        # 적 총알 이동 및 플레이어 충돌 처리
 │   ├── GameManager.cs        # 적 스폰, 점수, 라이프, 게임 오버 관리
-│   └── OutOfBoundsDestroy.cs # 화면 밖 오브젝트 자동 제거 (범용)
+│   ├── OutOfBoundsDestroy.cs # 화면 밖 오브젝트 자동 제거 (범용)
+│   ├── AttackBoom.cs         # 붐 이펙트/공격 오브젝트 동작
+│   ├── Item.cs               # 아이템 기본 동작
+│   └── BackgroundScroller.cs # 배경 무한 스크롤
 ├── Prefabs/                  # 적·총알·플레이어 프리팹
-├── Animations/               # 플레이어 애니메이션 컨트롤러 및 클립
-└── Test/                     # 학습용 연습 씬 및 스크립트
-    ├── Scripts/
-    │   ├── Enemy3_2.cs       # 대리자(onDie) 연습용 적
-    │   ├── Item3_2.cs        # 아이템 타입 정의 (Coin, Boom, Power)
-    │   ├── Player3_2.cs      # 아이템 충돌 감지 연습용 플레이어
-    │   ├── Test3Main_2.cs    # 대리자 + 싱글톤 연결 연습용 Main
-    │   └── ItemManager3.cs   # 싱글톤 패턴 연습용 아이템 매니저
-    └── Prefabs/              # Coin, Boom, Power 아이템 프리팹
+└── Animations/               # 플레이어/아이템/붐 애니메이션 리소스
 ```
 
 ---
